@@ -6,7 +6,7 @@ async function analyze() {
   const candles = await fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=100")
     .then(res => res.json());
 
-  const res = await fetch("http://localhost:3001/analyze", {
+  const res = await fetch("https://analyzer-peach.vercel.app//analyze", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
