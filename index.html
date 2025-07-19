@@ -1,119 +1,44 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Trade Planner</title>
+  <title>Test Chart</title>
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: white;
-      padding: 1rem;
-    }
-    select, button {
-      margin-bottom: 1rem;
-      padding: 0.5rem;
-      font-size: 1rem;
-    }
     #chart {
       width: 100%;
       height: 500px;
-      margin-top: 1rem;
-      background: #1e1e1e;
-      border-radius: 8px;
-    }
-    footer {
-      margin-top: 2rem;
-      text-align: center;
-      font-size: 0.8rem;
-      color: #888;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@3.9.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-
-  <h2>AI Trade Planner</h2>
-
-  <label for="pair">Sélectionnez la paire :</label>
-  <select id="pair">
-    <option value="BTCUSDT">BTC/USDT</option>
-    <option value="ETHUSDT">ETH/USDT</option>
-    <option value="BNBUSDT">BNB/USDT</option>
-  </select>
-
-  <div>
-    <label>
-      <input type="radio" name="timeframe" value="1h" checked /> Court terme (1H)
-    </label>
-    <label>
-      <input type="radio" name="timeframe" value="1d" /> Long terme (1 jour)
-    </label>
-  </div>
-
-  <button onclick="loadChart()">Analyser avec IA</button>
-
   <div id="chart"></div>
 
-  <footer>
-    © 2025 Nathan Metivier - AI Trade Planner
-  </footer>
-
   <script>
-    async function fetchOHLC(pair, interval) {
-      const intervalMap = { "1h": "1h", "1d": "1d" };
-      const url = `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${intervalMap[interval]}&limit=200`;
-      const res = await fetch(url);
-      const raw = await res.json();
-      return raw.map(d => ({
-        time: Math.floor(d[0] / 1000),
-        open: parseFloat(d[1]),
-        high: parseFloat(d[2]),
-        low: parseFloat(d[3]),
-        close: parseFloat(d[4]),
-        volume: parseFloat(d[5])
-      }));
-    }
+    const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+      width: window.innerWidth,
+      height: 500,
+      layout: {
+        backgroundColor: '#ffffff',
+        textColor: '#000',
+      },
+      grid: {
+        vertLines: { color: '#eee' },
+        horzLines: { color: '#eee' },
+      },
+    });
 
-    let chart, candleSeries, volumeSeries;
+    const lineSeries = chart.addLineSeries();
 
-    async function loadChart() {
-      const pair = document.getElementById("pair").value;
-      const interval = document.querySelector("input[name='timeframe']:checked").value;
+    // Données factices
+    const fakeData = [
+      { time: '2024-07-15', value: 28000 },
+      { time: '2024-07-16', value: 28100 },
+      { time: '2024-07-17', value: 27950 },
+      { time: '2024-07-18', value: 28200 },
+      { time: '2024-07-19', value: 28500 },
+    ];
 
-      const ohlc = await fetchOHLC(pair, interval);
-
-      if (chart) chart.remove();
-
-      chart = LightweightCharts.createChart(document.getElementById("chart"), {
-        layout: {
-          background: { color: "#1e1e1e" },
-          textColor: "#d1d4dc"
-        },
-        width: document.getElementById("chart").clientWidth,
-        height: 500,
-        grid: {
-          vertLines: { color: "#2f2f2f" },
-          horzLines: { color: "#2f2f2f" }
-        }
-      });
-
-      candleSeries = chart.addCandlestickSeries();
-      volumeSeries = chart.addHistogramSeries({
-        color: "#26a69a",
-        priceFormat: { type: "volume" },
-        priceScaleId: "",
-        scaleMargins: { top: 0.8, bottom: 0 }
-      });
-
-      candleSeries.setData(ohlc);
-      volumeSeries.setData(ohlc.map(d => ({ time: d.time, value: d.volume })));
-    }
-
-    // Load default chart on page load
-    window.onload = loadChart;
+    lineSeries.setData(fakeData);
   </script>
 </body>
 </html>
