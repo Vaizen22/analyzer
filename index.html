@@ -1,20 +1,49 @@
-<button onclick="analyze()">Analyser les données</button>
-<pre id="result"></pre>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Analyseur de courbes BTC</title>
+</head>
+<body>
+  <h1>Analyseur BTC/USDT</h1>
+  <button id="analyzeBtn">Analyser les données</button>
+  <pre id="result"></pre>
 
-<script>
-async function analyze() {
-  const candles = await fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=100")
-    .then(res => res.json());
+  <script>
+    document.getElementById('analyzeBtn').addEventListener('click', async () => {
+      const response = await fetch("https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=100");
+      const data = await response.json();
 
-  const res = await fetch("https://analyzer-peach.vercel.app//analyze", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ candles })
-  });
+      const closePrices = data.map(candle => candle[4]); // prix de clôture
 
-  const data = await res.json();
-  document.getElementById("result").innerText = data.choices?.[0]?.message?.content || "Aucune analyse reçue";
-}
-</script>
+      const prompt = `
+        Analyse technique complète des 100 dernières bougies BTC/USDT en 1h :
+        - Identifier les tendances
+        - Détecter des zones de support/résistance
+        - Évaluer la volatilité
+        - Donner des recommandations de trade court terme
+        Voici les prix de clôture : ${closePrices.join(", ")}
+      `;
+
+      const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer sk-or-7c51c1fbf02c68dcd434ec2e69a045d2878195c9c7df5fd6c2f07157182c37dd",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-4o",
+          messages: [
+            { role: "system", content: "Tu es un expert en analyse technique de cryptomonnaies." },
+            { role: "user", content: prompt }
+          ]
+        })
+      });
+
+      const aiResult = await aiResponse.json();
+      const content = aiResult.choices[0].message.content;
+      document.getElementById('result').textContent = content;
+    });
+  </script>
+</body>
+</html>
